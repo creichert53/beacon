@@ -1,1 +1,0 @@
-git clone https://github.com/creichert53/beacon.git
