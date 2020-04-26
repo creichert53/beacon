@@ -1,6 +1,8 @@
 import BAC0
-# import socket
+import socket
 import time
+import netifaces
+import netaddr
 # import logging
 
 # from tornado.escape import json_decode, json_encode
@@ -19,10 +21,18 @@ import time
 # ip_address = s.getsockname()[0]
 # s.close()
 
+addrs = netifaces.ifaddresses('en0')
+ipinfo = addrs[netifaces.AF_INET][0]
+address = ipinfo['addr']
+netmask = ipinfo['netmask']
+
+# Create ip object and get 
+cidr = netaddr.IPNetwork('%s/%s' % (address, netmask))
+
 test = BAC0.connect(
-    ip="10.10.1.29/24"
+    ip=str(cidr)
 )
-test.disconnect()
+# test.disconnect()
 
 # class BacnetDevice(object):
 #     def __init__(self):

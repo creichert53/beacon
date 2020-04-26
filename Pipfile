@@ -17,6 +17,8 @@ six = "==1.14.0"
 wrapt = "==1.11.2"
 BAC0 = "==20.2.20"
 tornado = "*"
+netifaces = "*"
+netaddr = "*"
 
 [requires]
 python_version = "3.7.5"
