@@ -21,7 +21,7 @@ import netaddr
 # ip_address = s.getsockname()[0]
 # s.close()
 
-addrs = netifaces.ifaddresses('en0')
+addrs = netifaces.ifaddresses('enp0s5')
 ipinfo = addrs[netifaces.AF_INET][0]
 address = ipinfo['addr']
 netmask = ipinfo['netmask']
@@ -32,7 +32,7 @@ cidr = netaddr.IPNetwork('%s/%s' % (address, netmask))
 test = BAC0.connect(
     ip=str(cidr)
 )
-# test.disconnect()
+test.disconnect()
 
 # class BacnetDevice(object):
 #     def __init__(self):
