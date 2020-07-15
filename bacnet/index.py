@@ -3,85 +3,71 @@ import socket
 import time
 import netifaces
 import netaddr
-# import logging
+import os, logging, json
 
-# from tornado.escape import json_decode, json_encode
-# from tornado.ioloop import IOLoop
-# from tornado import gen
-# from tornado.options import define, options, parse_command_line
-# from tornado.web import Application, RequestHandler
+from sanic import Sanic
+from sanic.response import json as json_response
 
-# from tornado.options import define, options, parse_command_line
+with open('bacnet/vendors.json') as json_file:
+    vendors = json.load(json_file)
 
-# define("port", default=8888, help="run on the given port", type=int)
-# define("debug", default=True, help="run in debug mode")
-
-# s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-# s.connect(("8.8.8.8", 80))
-# ip_address = s.getsockname()[0]
-# s.close()
-
-addrs = netifaces.ifaddresses('enp0s5')
+adapters = os.listdir("/sys/class/net/")
+addrs = netifaces.ifaddresses(adapters[2])
 ipinfo = addrs[netifaces.AF_INET][0]
-address = ipinfo['addr']
-netmask = ipinfo['netmask']
+address = ipinfo["addr"]
+netmask = ipinfo["netmask"]
 
-# Create ip object and get 
-cidr = netaddr.IPNetwork('%s/%s' % (address, netmask))
+# Create ip object and get
+cidr = netaddr.IPNetwork("%s/%s" % (address, netmask))
 
-test = BAC0.connect(
-    ip=str(cidr)
-)
-test.disconnect()
 
-# class BacnetDevice(object):
-#     def __init__(self):
-#         # self._daemon = BAC0.lite(
-#         #     ip=f"{ip_address}/24",
-#         #     port="47808",
-#         # )
-#         # self._daemon.disconnect()
-#         print("Hello")
+# Async API server
+app = Sanic("Beacon")
 
-#     def reset(self):
-#         # fetch from database
-#         print("Trying to reset device")
-#         self._daemon.disconnect()
-#         # self._daemon = BAC0.lite(
-#         #     ip=f"{ip_address}/24",
-#         #     port="47808",
-#         # )
 
-#     def session(self):
-#         return self._daemon
+# Object for handling common BACnet tasks
+class BacnetDevice(object):
+    def __init__(self):
+        self._define_local_device()
 
-# class MainHandler(RequestHandler):
-#     def get(self):
-#         self.write("Hello, world")
+    def _define_local_device(self):
+        self._daemon = BAC0.connect(ip=str(cidr), port="47808", deviceId="35")
 
-# class DiscoverHandler(RequestHandler):
-#     def initialize(self, bacnet_device):
-#         self._bacnet_device = bacnet_device
+    def reset(self):
+        # fetch from database
+        self._daemon.disconnect()
+        self._define_local_device()
 
-#     def get(self):
-#         self._bacnet_device.reset()
-#         self.write("Something")
+    def discover_devices(
+        self, networks='known', limits=(0, 4194303), global_broadcast=False
+    ):
+        self._daemon.discover(networks, limits, global_broadcast)
+        discovered_devices = dict(self._daemon.discoveredDevices if self._daemon.discoveredDevices is not None else {})
+        props = [BAC0.device(key[0], key[1], self._daemon, poll=0).properties.asdict for key, v in discovered_devices.items()]
+        for prop in props:
+            del prop["pss"]
+            del prop["network"]
+            prop["vendor_name"] = next((vendor["Organization"] for vendor in vendors if vendor["Vendor ID"] == prop["vendor_id"]), None)
+        print(props)
+        return props
 
-# def main():
-#     parse_command_line(final=False)
-#     bacnet_device = BacnetDevice()
+    def session(self):
+        return self._daemon
 
-#     app = Application(
-#         [
-#             (r"/", MainHandler),
-#             (r"/discover", DiscoverHandler, dict(bacnet_device=bacnet_device)),
-#         ],
-#         debug=options.debug
-#     )
-#     app.listen(options.port)
+# Set a BACnet device on the server that can be interrogated by the API calls.
+app.config.DEVICE = BacnetDevice()
 
-#     print("Listening on http://localhost:%d" % options.port)
-#     IOLoop.current().start()
+@app.route("/")
+async def test(request):
+    return json_response({"hello": "world"})
 
-# if __name__ == "__main__":
-#     main()
+@app.route("/api/discover")
+async def discover(request):
+    props = app.config.DEVICE.discover()
+    return json_response(props)
+
+
+if __name__ == "__main__":
+    port = 8888
+    print(f"Listening on http://{address}:{port}")
+    app.run(host="0.0.0.0", port=port, auto_reload=True)

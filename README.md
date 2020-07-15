@@ -21,7 +21,6 @@ curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer 
 echo 'export PATH="/home/$(whoami)/.pyenv/bin:$PATH"' >> ~/.bashrc
 echo "$(pyenv init -)" >> ~/.bashrc
 echo "$(pyenv virtualenv-init -)" >> ~/.bashrc
-echo "alias python=python3" >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -38,12 +37,20 @@ pyenv version
 ```bash
 # Simple Installation
 
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
 source $HOME/.poetry/env
 poetry --version
+```
 
+```bash
 # Install Python Dependencies
 
 cd ~/srv/beacon
 poetry install
+```
+
+```bash
+# Run Poetry environment
+
+poetry shell
 ```
