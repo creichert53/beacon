@@ -6,7 +6,6 @@ Clone the project to the `/srv` directory in the raspberry pi
 
 ```bash
 # Install Dependencies
-
 cd ~
 sudo apt install -y build-essential tk-dev libncurses5-dev \
   libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev \
@@ -16,7 +15,6 @@ sudo apt install -y build-essential tk-dev libncurses5-dev \
 
 ```bash
 # Install Pyenv
-
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 echo 'export PATH="/home/$(whoami)/.pyenv/bin:$PATH"' >> ~/.bashrc
 echo "$(pyenv init -)" >> ~/.bashrc
@@ -26,7 +24,6 @@ source ~/.bashrc
 
 ```bash
 # Install Python 3.8 with Pyenv
-
 pyenv install 3.8.3
 pyenv global 3.8.3
 pyenv version
@@ -36,7 +33,6 @@ pyenv version
 
 ```bash
 # Simple Installation
-
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
 source $HOME/.poetry/env
 poetry --version
@@ -44,13 +40,25 @@ poetry --version
 
 ```bash
 # Install Python Dependencies
-
 cd ~/srv/beacon
 poetry install
 ```
 
 ```bash
 # Run Poetry environment
-
 poetry shell
+```
+
+## Install Node
+
+```bash
+# Install Node
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Install Node Packages
+npm i
+
+# If unable to install global packages because of permission issue, run the following command.
+sudo chown -R $USER /usr/lib/node_modules
 ```

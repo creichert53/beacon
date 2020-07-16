@@ -70,4 +70,4 @@ async def discover(request):
 if __name__ == "__main__":
     port = 8888
     print(f"Listening on http://{address}:{port}")
-    app.run(host="0.0.0.0", port=port, auto_reload=True)
+    app.run(host="0.0.0.0", port=port)
